@@ -1,0 +1,33 @@
+- name: Scan app for Kubernetes Secret usage and authenticate to Conjur
+  hosts: localhost
+  gather_facts: false
+  vars:
+    policy_template_file: conjur_host_policy_template.j2
+    policy_rendered_file: /tmp/conjur_app_path_policy.yaml
+    variable_policy_template_file: conjur_variables_template.j2
+    variable_policy_rendered_file: /tmp/conjur_generated_variables.yaml
+    secrets_provider_patch_template_file: secrets_provider_patch_template.yaml.j2
+    secrets_provider_config_file: /tmp/updated_deployment_with_provider.yaml
+    conjur_ssl_cert_path: /tmp/conjur.pem
+
+
+  tasks:
+    # Step 0: Fetch Conjur Leader/Follower certificate and render ConfigMap
+    - name: Download Conjur public certificate
+      shell: |
+        openssl s_client -showcerts -connect {{ conjur_host }}:443 < /dev/null 2> /dev/null \
+        | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > {{ conjur_ssl_cert_path }}
+      args:
+        executable: /bin/bash
+
+
+    - name: Show saved certificate path
+      ansible.builtin.debug:
+        msg: "Certificate saved at: {{ conjur_ssl_cert_path }}"
+    
+    - name: Read Conjur certificate into memory
+      slurp:
+        src: "{{ conjur_ssl_cert_path }}"
+      register: cert_raw
+
+      
