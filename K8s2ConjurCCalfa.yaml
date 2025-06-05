@@ -31,7 +31,13 @@
       register: cert_raw
       
 # debugging:
+    - name: Save Conjur certificate to file
+      ansible.builtin.copy:
+        content: "{{ conjur_cert.stdout }}"
+        dest: "{{ conjur_ssl_cert_path }}"
+        mode: '0644'
+        
     - name: Preview Conjur certificate content (first 80 characters)
       ansible.builtin.debug:
-        msg: "🔐 Cert preview: {{ cert_raw.stdout[:80] }}..."
+        msg: "🔐 Cert preview: {{ conjur_cert.stdout[:80] }}..."
     
