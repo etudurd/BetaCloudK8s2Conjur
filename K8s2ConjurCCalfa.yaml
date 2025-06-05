@@ -20,17 +20,29 @@
       args:
         executable: /bin/bash
         
-# debugging:
+# debugging: \/
+
     - name: Show saved certificate path
       ansible.builtin.debug:
         msg: "Certificate saved at: {{ conjur_ssl_cert_path }}"
+        
+# debugging /\
 
     - name: Read Conjur certificate into memory
       slurp:
         src: "{{ conjur_ssl_cert_path }}"
       register: cert_raw
       
-# debugging:
+# debugging: \/
+
+    - name: Get Conjur certificate content
+      ansible.builtin.shell: |
+        openssl s_client -showcerts -connect {{ conjur_host }}:443 < /dev/null 2> /dev/null \
+        | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
+      register: conjur_cert
+      args:
+        executable: /bin/bash
+    
     - name: Save Conjur certificate to file
       ansible.builtin.copy:
         content: "{{ conjur_cert.stdout }}"
@@ -40,4 +52,6 @@
     - name: Preview Conjur certificate content (first 80 characters)
       ansible.builtin.debug:
         msg: "🔐 Cert preview: {{ conjur_cert.stdout[:80] }}..."
-    
+        
+# debugging /\
+
