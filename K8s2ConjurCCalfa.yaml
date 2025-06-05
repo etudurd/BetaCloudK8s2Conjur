@@ -25,6 +25,10 @@
       ansible.builtin.debug:
         msg: "Certificate saved at: {{ conjur_ssl_cert_path }}"
     
+    - name: Preview Conjur certificate content (first 80 characters)
+      ansible.builtin.debug:
+      msg: "🔐 Cert preview: {{ conjur_cert.stdout[:80] }}..."
+    
     - name: Read Conjur certificate into memory
       slurp:
         src: "{{ conjur_ssl_cert_path }}"
